@@ -425,35 +425,36 @@ if username:
         # 🧽 Additional Overdue Quarterly-Frequency Tasks
         if recs.get("extra_quarterly_tasks"):
             st.markdown("##### 🧽 Additional Quarterly Tasks")
-            for task in recs["extra_quarterly_tasks"]:
+            for task in recs["extra_quarterly_tasks"]:  # <-- Make sure this loop is wrapping the logic
                 history = scheduler.task_history.get(task, {})
                 last_done = history.get("last_done", "")
                 done_today = last_done == today_str
-    
+        
                 if done_today:
                     continue  # Skip if already done today
-    
+        
                 if hasattr(scheduler, 'task_metadata') and task in scheduler.task_metadata:
                     metadata = scheduler.task_metadata[task]
                     frequency = metadata.get("frequency", "unknown")
                     urgency_score = scheduler.get_task_urgency_score(task)
-    
+        
                     if urgency_score > 3:
                         urgency = "🔥 HIGH"
                     elif urgency_score > 1.5:
                         urgency = "⚠️ MEDIUM"
                     else:
                         urgency = "✓ LOW"
-    
+        
                     label = f"{task} ({frequency} task, urgency: {urgency})"
                 else:
                     label = task
-    
+        
                 checked = st.checkbox(label, value=False, key=f"quarterly_extra_{task}")
                 if checked:
                     scheduler.mark_task_completed(task)
                     st.success(f"✅ Marked as completed: {task}")
                     st.rerun()
+
 
     elif menu == "Mark Tasks Completed":
         st.subheader("✅ Mark a Task Completed")
