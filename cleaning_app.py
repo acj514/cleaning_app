@@ -18,11 +18,12 @@ if username:
     scheduler = AdaptiveCleaningScheduler(username=username)
 
     # Sidebar Menu
-    menu = st.sidebar.selectbox(
-        "Menu",
-        ["Today's Recommendations", "Mark Tasks Completed", "View Task History", "View Statistics", "Task Dashboard",
-         "Reset Today's Tasks"]
+    menu = st.sidebar.radio(
+        "📋 Menu",
+        ["Today's Recommendations", "Mark Tasks Completed", "View Task History", "View Statistics", "Task Dashboard", "Reset Today's Tasks"],
+        format_func=lambda x: x  # Optional: makes sure formatting stays clean
     )
+
 
     if menu == "Today's Recommendations":
         st.subheader("How's your energy today?")
