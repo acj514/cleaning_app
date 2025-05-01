@@ -260,11 +260,11 @@ class AdaptiveCleaningScheduler:
         """Initialize all cleaning tasks with priority, time, and frequency"""
         # Create frequency thresholds for determining when tasks are due
         frequency_thresholds = {
-            "daily": 2,  # Due if not done in 2 days
-            "weekly": 7,  # Due if not done in 7 days
-            "biweekly": 14,  # Due if not done in 14 days
-            "monthly": 30,  # Due if not done in 30 days
-            "quarterly": 90  # Due if not done in 90 days
+            "daily": 3,  # Due if not done in 2 days
+            "weekly": 10,  # Due if not done in 7 days
+            "biweekly": 18,  # Due if not done in 14 days
+            "monthly": 35,  # Due if not done in 30 days
+            "quarterly": 100  # Due if not done in 90 days
         }
 
         # Priority multipliers for urgency calculation
