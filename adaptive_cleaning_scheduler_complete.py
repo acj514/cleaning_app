@@ -731,9 +731,9 @@ class AdaptiveCleaningScheduler:
         # If not available yet, generate fresh list of monthly candidates
         monthly_tasks = []
         
-        for task_name, metadata in self.task_metadata.items():
-            if metadata.get("frequency") == "monthly":
-                monthly_tasks.append(task_name)
+        # for task_name, metadata in self.task_metadata.items():
+        #     if metadata.get("frequency") == "monthly":
+        #         monthly_tasks.append(task_name)
 
         monthly_tasks = [t for t in monthly_tasks if not self.was_task_done_recently(t, 20)]
 
@@ -773,8 +773,11 @@ class AdaptiveCleaningScheduler:
         if energy_level == "green":
             # Monthly tasks now returns a list of tasks
             result["monthly_tasks"] = self.daily_task_assignments.get(today_str, {}).get("monthly_tasks", [])
+            print(f"Monthly tasks from daily assignments: {result['monthly_tasks']}")
             if not result["monthly_tasks"]:
-                result["monthly_tasks"] = self.get_monthly_task()
+                monthly_tasks = self.get_monthly_task()
+                print(f"Monthly tasks from get_monthly_task: {monthly_tasks}")
+                result["monthly_tasks"] = monthly_tasks
 
             result["variety_tasks"] = self.daily_task_assignments.get(today_str, {}).get("variety_tasks", [])
             result["quarterly_focus"] = self.get_quarterly_task()
