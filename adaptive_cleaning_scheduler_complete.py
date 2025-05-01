@@ -718,6 +718,13 @@ class AdaptiveCleaningScheduler:
             return tasks[:4]
 
     def get_monthly_task(self) -> List[str]:
+        # Add at beginning of get_monthly_task()
+        monthly_count = 0
+        for _, metadata in self.task_metadata.items():
+            if metadata.get("frequency") == "monthly":
+                monthly_count += 1
+        print(f"Total monthly tasks in metadata: {monthly_count}")
+        
         """Get today's monthly visual impact tasks from the saved task assignments"""
         today_str = self.current_date.strftime("%Y-%m-%d")
 
