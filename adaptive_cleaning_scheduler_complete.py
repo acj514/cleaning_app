@@ -789,6 +789,16 @@ class AdaptiveCleaningScheduler:
             result["variety_tasks"] = self.daily_task_assignments.get(today_str, {}).get("variety_tasks", [])
             result["quarterly_focus"] = self.get_quarterly_task()
 
+            # Add up to 5 additional overdue quarterly-frequency tasks
+            overdue_quarterly = [
+                task for task, meta in self.task_metadata.items()
+                if meta.get("frequency") == "quarterly" and self.is_task_due(task) and task != result["quarterly_focus"]
+            ]
+            
+            # Sort by days since last done (most overdue first)
+            overdue_quarterly.sort(key=self.get_days_since_task_completion, reverse=True)
+            result["extra_quarterly_tasks"] = overdue_quarterly[:5]
+
         return result
 
     def display_recommendations(self, energy_level="yellow"):
