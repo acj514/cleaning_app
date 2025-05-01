@@ -604,7 +604,7 @@ class AdaptiveCleaningScheduler:
             priority_multiplier = metadata["priority_multiplier"]
         else:
             # Default values if metadata not found
-            threshold = 7
+            threshold = 10
             priority_multiplier = 1.0
 
         # Calculate overdue factor (how many times over the threshold)
