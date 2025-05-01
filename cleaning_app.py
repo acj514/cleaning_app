@@ -181,13 +181,7 @@ if username:
                     st.info(task)
                     continue
 
-                history = scheduler.task_history.get(task, {})
-                last_done = history.get("last_done", "")
-                done_today = last_done == today_str
-
-                # Only add to list if not done today
-                if not done_today:
-                    uncompleted_weekly_tasks.append(task)
+                uncompleted_weekly_tasks.append(task)
 
             # Check if all tasks were completed
             if not uncompleted_weekly_tasks:
