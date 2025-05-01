@@ -6,7 +6,7 @@ from adaptive_cleaning_scheduler_complete import AdaptiveCleaningScheduler
 # Initialize the scheduler
 scheduler = AdaptiveCleaningScheduler()
 
-st.set_page_config(page_title="Adaptive Cleaning Scheduler", layout="wide")
+st.set_page_config(page_title="Adaptive Cleaning Scheduler", layout="wide", initial_sidebar_state="expanded")
 
 st.title("🧹 Adaptive Cleaning Scheduler")
 
