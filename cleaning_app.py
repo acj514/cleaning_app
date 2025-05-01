@@ -376,84 +376,85 @@ if username:
                             st.success(f"✅ Marked as completed: {task}")
                             st.rerun()
 
-        # 🗓️ QUARTERLY TASK
-        if energy_level == "green" and "quarterly_focus" in recs:
-            st.write("#### 🗓️ Quarterly Focus")
-            task = recs["quarterly_focus"]
-            if isinstance(task, str) and task.startswith("🎉"):
-                st.info(task)
+        # 🗓️ QUARTERLY TASKS
+    if energy_level == "green" and "quarterly_focus" in recs:
+        st.write("#### 🗓️ Quarterly Focus")
+        task = recs["quarterly_focus"]
+        if isinstance(task, str) and task.startswith("🎉"):
+            st.info(task)
+        else:
+            history = scheduler.task_history.get(task, {})
+            last_done = history.get("last_done", "")
+            done_today = last_done == today_str
+    
+            if done_today:
+                st.markdown(
+                    """
+                    <div style="background-color: rgba(27, 54, 93, 0.5); 
+                                padding: 10px 15px; 
+                                border-radius: 5px; 
+                                margin-bottom: 10px">
+                        <span style="color: #ffffff">🎉 Quarterly focus task completed! Excellent!</span>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
             else:
+                if hasattr(scheduler, 'task_metadata') and task in scheduler.task_metadata:
+                    metadata = scheduler.task_metadata[task]
+                    frequency = metadata.get("frequency", "unknown")
+                    urgency_score = scheduler.get_task_urgency_score(task)
+    
+                    if urgency_score > 3:
+                        urgency = "🔥 HIGH"
+                    elif urgency_score > 1.5:
+                        urgency = "⚠️ MEDIUM"
+                    else:
+                        urgency = "✓ LOW"
+    
+                    label = f"{task} ({frequency} task, urgency: {urgency})"
+                else:
+                    label = task
+    
+                checked = st.checkbox(label, value=False, key=f"quarterly_{task}")
+                if checked:
+                    scheduler.mark_task_completed(task)
+                    st.success(f"✅ Marked as completed: {task}")
+                    st.rerun()
+    
+        # 🧽 Additional Overdue Quarterly-Frequency Tasks
+        if recs.get("extra_quarterly_tasks"):
+            st.markdown("##### 🧽 Additional Quarterly Tasks")
+            for task in recs["extra_quarterly_tasks"]:
                 history = scheduler.task_history.get(task, {})
                 last_done = history.get("last_done", "")
                 done_today = last_done == today_str
-
-                # Check if task is completed
+    
                 if done_today:
-                    st.markdown(
-                        """
-                        <div style="background-color: rgba(27, 54, 93, 0.5); 
-                                    padding: 10px 15px; 
-                                    border-radius: 5px; 
-                                    margin-bottom: 10px">
-                            <span style="color: #ffffff">🎉 Quarterly focus task completed! Excellent!</span>
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
-                else:
-                    # Get urgency info
-                    if hasattr(scheduler, 'task_metadata') and task in scheduler.task_metadata:
-                        metadata = scheduler.task_metadata[task]
-                        frequency = metadata.get("frequency", "unknown")
-                        urgency_score = scheduler.get_task_urgency_score(task)
-
-                        # Create urgency indicator
-                        if urgency_score > 3:
-                            urgency = "🔥 HIGH"
-                        elif urgency_score > 1.5:
-                            urgency = "⚠️ MEDIUM"
-                        else:
-                            urgency = "✓ LOW"
-
-                        label = f"{task} ({frequency} task, urgency: {urgency})"
+                    continue  # Skip if already done today
+    
+                if hasattr(scheduler, 'task_metadata') and task in scheduler.task_metadata:
+                    metadata = scheduler.task_metadata[task]
+                    frequency = metadata.get("frequency", "unknown")
+                    urgency_score = scheduler.get_task_urgency_score(task)
+    
+                    if urgency_score > 3:
+                        urgency = "🔥 HIGH"
+                    elif urgency_score > 1.5:
+                        urgency = "⚠️ MEDIUM"
                     else:
-                        label = task
-
-                    checked = st.checkbox(label, value=False, key=f"quarterly_{task}")
-                    if checked:
-                        scheduler.mark_task_completed(task)
-                        st.success(f"✅ Marked as completed: {task}")
-                        st.rerun()
-
-    # Additional overdue quarterly tasks
-    if "extra_quarterly_tasks" in recs and recs["extra_quarterly_tasks"]:
-        st.markdown("##### 🧽 Additional Quarterly Tasks")
-        for task in recs["extra_quarterly_tasks"]:
-            # Get urgency info
-            if hasattr(scheduler, 'task_metadata') and task in scheduler.task_metadata:
-                metadata = scheduler.task_metadata[task]
-                frequency = metadata.get("frequency", "unknown")
-                urgency_score = scheduler.get_task_urgency_score(task)
+                        urgency = "✓ LOW"
     
-                # Create urgency indicator
-                if urgency_score > 3:
-                    urgency = "🔥 HIGH"
-                elif urgency_score > 1.5:
-                    urgency = "⚠️ MEDIUM"
+                    label = f"{task} ({frequency} task, urgency: {urgency})"
                 else:
-                    urgency = "✓ LOW"
+                    label = task
     
-                label = f"{task} ({frequency} task, urgency: {urgency})"
-            else:
-                label = task
-    
-            checked = st.checkbox(label, value=False, key=f"quarterly_extra_{task}")
-            if checked:
-                scheduler.mark_task_completed(task)
-                st.success(f"✅ Marked as completed: {task}")
-                st.rerun()
+                checked = st.checkbox(label, value=False, key=f"quarterly_extra_{task}")
+                if checked:
+                    scheduler.mark_task_completed(task)
+                    st.success(f"✅ Marked as completed: {task}")
+                    st.rerun()
 
-    
     elif menu == "Mark Tasks Completed":
         st.subheader("✅ Mark a Task Completed")
 
