@@ -723,10 +723,10 @@ class AdaptiveCleaningScheduler:
 
         # Prevent circular reference during initialization
         if hasattr(self, 'daily_task_assignments') and today_str in self.daily_task_assignments:
-            monthly_task = self.daily_task_assignments[today_str].get("monthly_task", [])
-            if isinstance(monthly_task, str):
-                return [monthly_task] if monthly_task else []
-            return monthly_task
+            monthly_tasks = self.daily_task_assignments[today_str].get("monthly_task", [])
+            if isinstance(monthly_tasks, str):
+                return [monthly_tasks] if monthly_tasks else []
+            return monthly_tasks
 
         # If not available yet, generate fresh list of monthly candidates
         monthly_tasks = []
