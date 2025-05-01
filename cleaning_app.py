@@ -311,7 +311,7 @@ if username:
 
             # Filter tasks to only get actual tasks (not celebration messages)
             actual_monthly_tasks = [task for task in recs['monthly_tasks'] if
-                                    not (isinstance(task, str) and task.startswith("🎉"))]
+                                    not (isinstance(task, str))]
 
             if not actual_monthly_tasks:
                 st.markdown(
