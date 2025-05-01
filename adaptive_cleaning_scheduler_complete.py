@@ -738,9 +738,9 @@ class AdaptiveCleaningScheduler:
         # If not available yet, generate fresh list of monthly candidates
         monthly_tasks = []
         
-        # for task_name, metadata in self.task_metadata.items():
-        #     if metadata.get("frequency") == "monthly":
-        #         monthly_tasks.append(task_name)
+        for task_name, metadata in self.task_metadata.items():
+            if metadata.get("frequency") == "monthly":
+                monthly_tasks.append(task_name)
 
         monthly_tasks = [t for t in monthly_tasks if not self.was_task_done_recently(t, 20)]
 
