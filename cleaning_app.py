@@ -425,6 +425,35 @@ if username:
                         st.success(f"✅ Marked as completed: {task}")
                         st.rerun()
 
+    # Additional overdue quarterly tasks
+    if "extra_quarterly_tasks" in recs and recs["extra_quarterly_tasks"]:
+        st.markdown("##### 🧽 Additional Quarterly Tasks")
+        for task in recs["extra_quarterly_tasks"]:
+            # Get urgency info
+            if hasattr(scheduler, 'task_metadata') and task in scheduler.task_metadata:
+                metadata = scheduler.task_metadata[task]
+                frequency = metadata.get("frequency", "unknown")
+                urgency_score = scheduler.get_task_urgency_score(task)
+    
+                # Create urgency indicator
+                if urgency_score > 3:
+                    urgency = "🔥 HIGH"
+                elif urgency_score > 1.5:
+                    urgency = "⚠️ MEDIUM"
+                else:
+                    urgency = "✓ LOW"
+    
+                label = f"{task} ({frequency} task, urgency: {urgency})"
+            else:
+                label = task
+    
+            checked = st.checkbox(label, value=False, key=f"quarterly_extra_{task}")
+            if checked:
+                scheduler.mark_task_completed(task)
+                st.success(f"✅ Marked as completed: {task}")
+                st.rerun()
+
+    
     elif menu == "Mark Tasks Completed":
         st.subheader("✅ Mark a Task Completed")
 
