@@ -439,21 +439,19 @@ class AdaptiveCleaningScheduler:
         return days_since
 
     def is_task_due(self, task_name):
-        """Check if a task is due based on its frequency"""
-        # Skip celebration messages
-        if task_name.startswith("🎉"):
-            return False
+        if task_name not in self.task_metadata:
+            print(f"[Warning] Task '{task_name}' not found in metadata.")
+            return False  # or True, depending on your fallback logic
+    
+        threshold = self.task_metadata[task_name]["threshold_days"]
+        last_done = self.task_history.get(task_name)
+    
+        if last_done is None:
+            return True
+    
+        days_since_done = (datetime.date.today() - last_done).days
+        return days_since_done >= threshold
 
-        days_since = self.get_days_since_task_completion(task_name)
-
-        # Get the threshold for this task
-        if task_name in self.task_metadata:
-            threshold = self.task_metadata[task_name]["threshold_days"]
-        else:
-            # Default to weekly if not found
-            threshold = 7
-
-        return days_since >= threshold
 
     def get_task_urgency_score(self, task_name):
         """Calculate an urgency score based on days since last completion and priority"""
