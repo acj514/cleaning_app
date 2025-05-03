@@ -461,28 +461,23 @@ class AdaptiveCleaningScheduler:
     def get_task_urgency_score(self, task_name):
         """Calculate an urgency score based on days since last completion and priority"""
         # Skip celebration messages
-        if task_name.startswith("🎉"):
+        metadata = self.task_metadata.get(task_name)
+        if not metadata:
+            print(f"[Warning] No metadata for task '{task_name}'")
+            return 0  # or a default urgency score
+    
+        threshold = metadata.get("threshold_days")
+        if threshold is None:
+            print(f"[Warning] No threshold_days for task '{task_name}'")
             return 0
+    
+        last_done = self.task_history.get(task_name)
+        if last_done is None:
+            return threshold  # assume max urgency if never done
+    
+        days_since_done = (datetime.date.today() - last_done).days
+        return days_since_done / threshold
 
-        days_since = self.get_days_since_task_completion(task_name)
-
-        if task_name in self.task_metadata:
-            metadata = self.task_metadata[task_name]
-            threshold = metadata["threshold_days"]
-            priority_multiplier = metadata["priority_multiplier"]
-        else:
-            # Default values if metadata not found
-            threshold = 10
-            priority_multiplier = 1.0
-
-        # Calculate overdue factor (how many times over the threshold)
-        # Min value of 0.1 ensures tasks not yet due still have some score
-        overdue_factor = max(0.1, days_since / threshold)
-
-        # Final score calculation
-        score = overdue_factor * priority_multiplier
-
-        return score
 
     def was_task_done_recently(self, task_name, days_threshold):
         """Return True if the task was completed within days_threshold"""
