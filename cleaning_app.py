@@ -82,7 +82,7 @@ if username:
                     urgency_score = scheduler.get_task_urgency_score(task)
 
                     # Create urgency indicator
-                    if urgency_score > 3:
+                    if urgency_score > 7:
                         urgency = "🔥 HIGH"
                     elif urgency_score > 1.5:
                         urgency = "⚠️ MEDIUM"
