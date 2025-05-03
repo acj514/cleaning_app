@@ -6,10 +6,8 @@ import json
 import streamlit as st
 import pandas as pd
 
-
 class AdaptiveCleaningScheduler:
     def __init__(self, username="default", history_file=None, daily_tasks_file=None):
-        # Always provide string values for file paths
         if history_file is None:
             history_file = f"{username}_cleaning_history.json"
         if daily_tasks_file is None:
@@ -18,34 +16,53 @@ class AdaptiveCleaningScheduler:
         self.history_file = history_file
         self.daily_tasks_file = daily_tasks_file
 
-        # Path to files storing task history and daily assignments
-        self.history_file = history_file
-        self.daily_tasks_file = daily_tasks_file
-
-        # Get the current date
         today = datetime.date.today()
         self.current_date = today
         self.day_of_week = today.strftime("%A")
-
-        # Use week of the year instead of week of month
         self.week_of_year = today.isocalendar()[1]
-
-        # Weekly focus now rotates based on week of year
-        focus_rotation = ["Kitchen", "Bathroom", "Living Area", "Bedroom/Pet"]
-        self.current_focus = focus_rotation[(self.week_of_year - 1) % len(focus_rotation)]
-
-        # Calculate quarter (1-4)
+        self.current_focus = ["Kitchen", "Bathroom", "Living Area", "Bedroom/Pet"][(self.week_of_year - 1) % 4]
         self.current_quarter = (today.month - 1) // 3 + 1
 
-        # Initialize task lists by priority, time required, and frequency
         self.tasks, self.task_metadata = self._initialize_tasks()
-
-        # Track when tasks were last done
         self.task_history = self._load_task_history()
-
-        # Load or generate today's task assignments
         self.daily_task_assignments = self._load_or_generate_daily_tasks()
+        self._ensure_today_generated()  # Ensure today's tasks are generated
 
+    def _ensure_today_generated(self):
+        today_str = self.current_date.strftime("%Y-%m-%d")
+        if today_str not in self.daily_task_assignments:
+            self.daily_task_assignments[today_str] = self._generate_todays_tasks()
+            with open(self.daily_tasks_file, 'w') as f:
+                json.dump(self.daily_task_assignments, f, indent=2)
+
+    def get_daily_tasks(self, energy_level="red") -> List[str]:
+        today_str = self.current_date.strftime("%Y-%m-%d")
+        return self.daily_task_assignments[today_str].get("daily_tasks", {}).get(energy_level, [])
+
+    def get_weekly_focus_tasks(self, energy_level="yellow") -> List[str]:
+        today_str = self.current_date.strftime("%Y-%m-%d")
+        return self.daily_task_assignments[today_str].get("weekly_tasks", {}).get(energy_level, [])
+
+    def get_biweekly_tasks(self) -> List[str]:
+        today_str = self.current_date.strftime("%Y-%m-%d")
+        return self.daily_task_assignments[today_str].get("biweekly_tasks", [])
+
+    def get_monthly_task(self) -> List[str]:
+        monthly_count = 0
+        for _, metadata in self.task_metadata.items():
+            if metadata.get("frequency") == "monthly":
+                monthly_count += 1
+        print(f"Total monthly tasks in metadata: {monthly_count}")
+
+        today_str = self.current_date.strftime("%Y-%m-%d")
+        tasks = self.daily_task_assignments[today_str].get("monthly_tasks", [])
+        return [tasks] if isinstance(tasks, str) else tasks
+
+    def get_quarterly_task(self) -> str:
+        quarterly_task = self.quarterly_focus[self.current_quarter]
+        if self.is_task_due(quarterly_task):
+            return quarterly_task
+        return "🎉 No quarterly focus needed today!"      
     def _load_task_history(self) -> Dict:
         """Load task history from file or create new if doesn't exist"""
         try:
