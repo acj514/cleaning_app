@@ -458,20 +458,26 @@ class AdaptiveCleaningScheduler:
     def is_task_due(self, task_name):
         meta = self.task_metadata.get(task_name)
         if not meta:
-            print(f"[Warning] No metadata found for task: {task_name}")
-            return False  # or True if you want to mark unknown tasks as due
+            return False  # or True, depending on what you prefer
         
-        threshold = meta.get("threshold_days")
-        if threshold is None:
-            print(f"[Warning] No threshold_days set for task: {task_name}")
-            return False
+        threshold = meta.get("threshold_days", 7)
     
-        last_done = self.task_history.get(task_name)
-        if last_done is None:
+        last_done_data = self.task_history.get(task_name)
+        if not last_done_data:
+            return True
+    
+        last_done_str = last_done_data.get("last_done")
+        if not last_done_str:
+            return True
+    
+        try:
+            last_done = datetime.datetime.strptime(last_done_str, "%Y-%m-%d").date()
+        except ValueError:
             return True
     
         days_since_done = (datetime.date.today() - last_done).days
         return days_since_done >= threshold
+
 
 
 
