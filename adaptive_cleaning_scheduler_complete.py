@@ -275,9 +275,7 @@ class AdaptiveCleaningScheduler:
             "priority4": 0.5
         }
 
-        # Task metadata containing frequency and priority information
-        task_metadata = {}
-
+        
         # Regular tasks organized by priority and time
         ## Regular tasks organized by priority and time
         tasks = {
@@ -367,103 +365,23 @@ class AdaptiveCleaningScheduler:
                 ]
             }
         }
+        
+        task_metadata = {}
+        for priority, durations in tasks.items():
+            for duration, task_list in durations.items():
+                for task in task_list:
+                    task_metadata[task] = {
+                        "priority": priority,
+                        "duration": duration,
+                        "frequency": (
+                            "daily" if priority == "priority1" else
+                            "weekly" if priority == "priority2" else
+                            "biweekly" if priority == "priority3" else
+                            "quarterly"
+                        )
+                    }
 
 
-        # Assign frequency to each task
-        # Priority 1, 2min tasks are mostly daily
-        for task in tasks["priority1"]["2min"]:
-            frequency = "daily"
-            if task in ["Replace kitchen hand towel with fresh one",
-                        "Empty bathroom trash if contains hygiene products", "Clean toilet seat with disposable wipe"]:
-                frequency = "biweekly"
-            task_metadata[task] = {
-                "frequency": frequency,
-                "threshold_days": frequency_thresholds[frequency],
-                "priority": "priority1",
-                "priority_multiplier": priority_multipliers["priority1"],
-                "time": "2min"
-            }
-
-        # Priority 1, 5min tasks are mostly weekly
-        for task in tasks["priority1"]["5min"]:
-            frequency = "weekly"
-            task_metadata[task] = {
-                "frequency": frequency,
-                "threshold_days": frequency_thresholds[frequency],
-                "priority": "priority1",
-                "priority_multiplier": priority_multipliers["priority1"],
-                "time": "5min"
-            }
-
-        # Priority 1, 15min tasks are mostly biweekly
-        for task in tasks["priority1"]["15min"]:
-            frequency = "biweekly"
-            task_metadata[task] = {
-                "frequency": frequency,
-                "threshold_days": frequency_thresholds[frequency],
-                "priority": "priority1",
-                "priority_multiplier": priority_multipliers["priority1"],
-                "time": "15min"
-            }
-
-        # Priority 2, 2min tasks are weekly
-        for task in tasks["priority2"]["2min"]:
-            frequency = "weekly"
-            task_metadata[task] = {
-                "frequency": frequency,
-                "threshold_days": frequency_thresholds[frequency],
-                "priority": "priority2",
-                "priority_multiplier": priority_multipliers["priority2"],
-                "time": "2min"
-            }
-
-        # Priority 2, 5min tasks are biweekly
-        for task in tasks["priority2"]["5min"]:
-            frequency = "biweekly"
-            task_metadata[task] = {
-                "frequency": frequency,
-                "threshold_days": frequency_thresholds[frequency],
-                "priority": "priority2",
-                "priority_multiplier": priority_multipliers["priority2"],
-                "time": "5min"
-            }
-
-        # Priority 2, 15min tasks are monthly
-        for task in tasks["priority2"]["15min"]:
-            frequency = "monthly"
-            task_metadata[task] = {
-                "frequency": frequency,
-                "threshold_days": frequency_thresholds[frequency],
-                "priority": "priority2",
-                "priority_multiplier": priority_multipliers["priority2"],
-                "time": "15min"
-            }
-
-        # Priority 3 tasks are mostly monthly
-        for time_cat in ["2min", "5min", "15min"]:
-            for task in tasks["priority3"][time_cat]:
-                frequency = "monthly"
-                task_metadata[task] = {
-                    "frequency": frequency,
-                    "threshold_days": frequency_thresholds[frequency],
-                    "priority": "priority3",
-                    "priority_multiplier": priority_multipliers["priority3"],
-                    "time": time_cat
-                }
-
-        # Priority 4 tasks are quarterly
-        for time_cat in ["15min", "delegate"]:
-            for task in tasks["priority4"][time_cat]:
-                frequency = "quarterly"
-                task_metadata[task] = {
-                    "frequency": frequency,
-                    "threshold_days": frequency_thresholds[frequency],
-                    "priority": "priority4",
-                    "priority_multiplier": priority_multipliers["priority4"],
-                    "time": time_cat
-                }
-
-        # Biweekly task sets
         self.biweekly_tasks = {
             "weeks1_2": [
                 "Full shower/tub cleaning",
