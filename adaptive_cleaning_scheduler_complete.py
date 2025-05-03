@@ -279,148 +279,95 @@ class AdaptiveCleaningScheduler:
         task_metadata = {}
 
         # Regular tasks organized by priority and time
+        ## Regular tasks organized by priority and time
         tasks = {
             "priority1": {
                 "2min": [
-                    "Sanitize kitchen food prep area with disinfectant wipe",
-                    "Swish toilet bowl with brush (no scrubbing)",
-                    "Spray shower with daily cleaner (no wiping)",
-                    "Wipe bathroom sink basin with disinfectant wipe",
-                    "Sanitize frequently touched handles/switches in main areas",
-                    "Clean pet food area with disinfectant wipe",
-                    "Replace kitchen hand towel with fresh one",
-                    "Empty bathroom trash if contains hygiene products",
-                    "Wipe spills on kitchen floor that could cause falls",
-                    "Clean toilet seat with disposable wipe"
+                    "Wipe bathroom sink",  # daily
+                    "Check and clear clutter from hallway or entryway",  # daily
+                    "Quick-sort mail",  # daily
+                    "Wipe down bathroom faucet",  # daily
+                    "Put shoes in closet or bin"  # daily
                 ],
                 "5min": [
-                    "Quick-clean inside microwave with damp cloth",
-                    "Wipe down kitchen counters completely",
-                    "Clean bathroom sink, faucet, and immediate counter area",
-                    "Scrub toilet bowl and wipe exterior surfaces",
-                    "Spot clean shower walls/door where soap scum visible",
-                    "Replace bathroom hand/face towels",
-                    "Clean litter box completely",
-                    "Wipe down refrigerator handles and most-touched shelves",
-                    "Clean stovetop surface (basic wipe down)",
-                    "Sanitize toothbrush holder and soap dishes"
+                    "Unload dishwasher",  # daily
+                    "Scoop cat litter",  # daily
+                    "Clear and wipe kitchen counters",  # daily
+                    "Pick up floor clutter in main room",  # daily
+                    "Take out trash if full"  # daily
                 ],
                 "15min": [
-                    "Complete toilet cleaning (bowl, tank, base, surrounding floor)",
-                    "Full shower/tub cleaning",
-                    "Full kitchen counter and sink cleaning",
-                    "Refrigerator clean-out of expired foods",
-                    "Change bed linens (fitted sheet, pillowcases)",
-                    "Deep clean pet areas (feeding station, litter area)",
-                    "Kitchen sink deep clean including disposal and drain",
-                    "Thorough bathroom vanity cleaning (sink, counter, mirror)",
-                    "Clean inside garbage can/replace bag and sanitize",
-                    "Disinfect high-touch kitchen surfaces (handles, switches, faucet)"
+                    "Vacuum main living space",  # daily if possible
+                    "Load dishwasher and run if full",  # daily
+                    "Wipe down stovetop",  # daily
+                    "Empty and wipe bathroom trash",  # daily
+                    "Clean coffee table"  # daily
                 ]
             },
             "priority2": {
                 "2min": [
-                    "Clear path from bedroom to bathroom of trip hazards",
-                    "Gather dirty dishes from living areas to kitchen",
-                    "Quick-sort mail/papers to prevent buildup",
-                    "Spot clean visible fingerprints on light switches/doors",
-                    "Clear items from stairs that could cause falls",
-                    "Wipe kitchen table surface for next meal",
-                    "Empty small waste baskets in main living area",
-                    "Refill soap dispensers in kitchen/bathroom",
-                    "Clear nightstand of dishes/trash",
-                    "Organize remote controls in living area"
+                    "Replace kitchen towel",  # weekly
+                    "Tidy couch cushions and blanket",  # weekly
+                    "Water houseplants",  # weekly
+                    "Wipe down door handles",  # weekly
+                    "Refill toilet paper or soap"  # weekly
                 ],
                 "5min": [
-                    "Quick-tidy living room sitting area",
-                    "Gather and put away items that belong in another room",
-                    "Sweep kitchen floor in front of sink/stove",
-                    "Clear and wipe dining table completely",
-                    "Organize bathroom counter essentials",
-                    "Clean one small kitchen appliance (coffee maker, toaster)",
-                    "Sort through one drawer of clothing",
-                    "Restock toilet paper and bathroom supplies",
-                    "Organize nightstand for better function",
-                    "Clear one kitchen counter work zone completely"
+                    "Wipe down appliances",  # weekly
+                    "Quick clean one mirror",  # weekly
+                    "Tidy one shelf or counter",  # weekly
+                    "Change pillowcases",  # weekly
+                    "Clean out one fridge shelf"  # weekly
                 ],
                 "15min": [
-                    "Spot vacuum main traffic areas in living room",
-                    "Clean inside of microwave completely",
-                    "Reorganize one refrigerator shelf completely",
-                    "Tidy and organize bathroom cabinet (most used items)",
-                    "Restock and organize laundry supplies",
-                    "Clean out one kitchen drawer completely",
-                    "Clear bedside area and organize for better function",
-                    "Organize one closet shelf",
-                    "Sort and organize one pile of papers/mail",
-                    "Clean glass surfaces in most used area (table tops, TV screen)"
+                    "Mop kitchen and bathroom floors",  # weekly
+                    "Change bed sheets",  # weekly
+                    "Vacuum rugs",  # weekly
+                    "Wipe switches and doorknobs",  # weekly
+                    "Clean bathroom toilet and sink thoroughly"  # weekly
                 ]
             },
             "priority3": {
                 "2min": [
-                    "Fluff pillows on couch/bed",
-                    "Align items on coffee table/side table",
-                    "Hang up one visible piece of clothing",
-                    "Close cabinet doors and drawers",
-                    "Straighten bathroom towels on racks",
-                    "Arrange decorative items on one shelf",
-                    "Put away items on kitchen counter",
-                    "Clear windowsill in main living area",
-                    "Fix one crooked picture frame or decoration",
-                    "Neatly fold throw blanket on couch"
+                    "Dust light fixtures",  # biweekly
+                    "Dust electronics",  # biweekly
+                    "Straighten bathroom items",  # biweekly
+                    "Spot check corners for cobwebs",  # biweekly
+                    "Check expiration dates on fridge items"  # biweekly
                 ],
                 "5min": [
-                    "Dust most visible surfaces in living room",
-                    "Quick declutter of coffee table/side table",
-                    "Wipe visible water spots on bathroom mirror",
-                    "Spot-clean visible wall smudges",
-                    "Dust TV and entertainment center",
-                    "Arrange books/magazines in main living area",
-                    "Wipe down front of appliances in kitchen",
-                    "Tidy visible shelving in main living area",
-                    "Clean glass/mirrors in entry area",
-                    "Remove cobwebs in ceiling corners (use extended duster)"
+                    "Wipe cabinet fronts",  # biweekly
+                    "Clean cat food area",  # biweekly
+                    "Wipe fridge handle and exterior",  # biweekly
+                    "Organize one drawer",  # biweekly
+                    "Wipe baseboards in one room"  # biweekly
                 ],
                 "15min": [
-                    "Dust all surfaces in one room completely",
-                    "Clean inside of one window and sill",
-                    "Vacuum one area rug completely",
-                    "Clean all mirrors in one bathroom",
-                    "Spot clean upholstery on main furniture",
-                    "Clean dust from electronics and cords",
-                    "Wipe down all baseboards in one room",
-                    "Clean ceiling fan blades in main room",
-                    "Polish wood furniture in one room",
-                    "Clean light fixtures in one room"
+                    "Dust entire bedroom or office",  # monthly
+                    "Clean out medicine cabinet",  # monthly
+                    "Reorganize pantry zone",  # monthly
+                    "Clean behind microwave",  # monthly
+                    "Deep clean one small appliance"  # monthly
                 ]
             },
             "priority4": {
                 "15min": [
-                    "Clean shower grout in one small section",
-                    "Deep clean one sink drain",
-                    "Clean refrigerator door gaskets",
-                    "Clean inside one small cabinet completely",
-                    "Vacuum under one piece of furniture",
-                    "Clean one window track and frame",
-                    "Wipe down one wall section",
-                    "Clean under kitchen sink",
-                    "Detail clean around toilet on floor and wall",
-                    "Clean one air vent/register"
+                    "Vacuum under couch",  # quarterly
+                    "Dust and rotate books",  # quarterly
+                    "Wipe window tracks",  # quarterly
+                    "Clean washing machine filter",  # quarterly
+                    "Check fire alarm batteries"  # quarterly
                 ],
                 "delegate": [
-                    "Baseboards throughout house",
-                    "Window washing (interior and exterior)",
-                    "Moving furniture for cleaning underneath",
-                    "Deep carpet cleaning",
-                    "Oven interior cleaning",
-                    "Garage/storage organization",
-                    "Washing walls/ceilings",
-                    "Cleaning behind/under appliances",
-                    "Deep closet organization",
-                    "Seasonal clothing rotation"
+                    "Clean behind large appliances",  # quarterly
+                    "Organize storage closet",  # quarterly
+                    "Sort donation bin",  # quarterly
+                    "Clean ceiling fan blades",  # quarterly
+                    "Wash curtains or blinds"  # quarterly
                 ]
             }
         }
+
 
         # Assign frequency to each task
         # Priority 1, 2min tasks are mostly daily
