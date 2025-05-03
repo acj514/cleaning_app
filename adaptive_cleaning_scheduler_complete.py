@@ -466,7 +466,7 @@ class AdaptiveCleaningScheduler:
             print(f"[Warning] No metadata for task '{task_name}'")
             return 0  # or a default urgency score
     
-        threshold = metadata.get("threshold_days")
+        threshold = metadata.get("threshold_days", 7)
         if threshold is None:
             print(f"[Warning] No threshold_days for task '{task_name}'")
             return 0
