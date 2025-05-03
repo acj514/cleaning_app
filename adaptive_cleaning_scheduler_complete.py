@@ -190,12 +190,12 @@ class AdaptiveCleaningScheduler:
     def _generate_daily_tasks(self, energy_level="red") -> List[str]:
         """Generate daily tasks based on energy level and task urgency"""
         day_assignment = {
-            "Monday": "Sanitize kitchen food prep area with disinfectant wipe",
-            "Tuesday": "Swish toilet bowl with brush (no scrubbing)",
-            "Wednesday": "Spray shower with daily cleaner (no wiping)",
-            "Thursday": "Wipe bathroom sink basin with disinfectant wipe",
-            "Friday": "Sanitize frequently touched handles/switches in main areas",
-            "Saturday": "Clean pet food area with disinfectant wipe",
+            "Monday": "Clear and wipe kitchen counters",
+            "Tuesday": "Pick up floor clutter in all rooms",
+            "Wednesday": "Take out trash and recycling",
+            "Thursday": "Clean coffee table",
+            "Friday": "Wipe bathroom sink and toilet quick-clean",
+            "Saturday": "Vacuum main living space",
             "Sunday": "REST DAY - No cleaning required"
         }
 
