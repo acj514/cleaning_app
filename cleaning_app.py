@@ -159,7 +159,71 @@ if username:
 
             st.markdown('</div>', unsafe_allow_html=True)
 
-        
+        # 🔄 WEEKLY TASKS
+        st.write(f"#### 🔄 Weekly Focus Tasks – {recs['week_focus']}")
+        if not recs['weekly_tasks']:
+            # If no weekly tasks, show a styled container
+            st.markdown(
+                """
+                <div style="background-color: rgba(27, 54, 93, 0.5); 
+                            padding: 10px 15px; 
+                            border-radius: 5px; 
+                            margin-bottom: 10px">
+                    <span style="color: #ffffff">🎉 No weekly focus tasks needed today!</span>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+        else:
+            # Filter out completed weekly tasks
+            uncompleted_weekly_tasks = []
+            for task in recs['weekly_tasks']:
+                if isinstance(task, str) and task.startswith("🎉"):
+                    st.info(task)
+                    continue
+
+                uncompleted_weekly_tasks.append(task)
+
+            # Check if all tasks were completed
+            if not uncompleted_weekly_tasks:
+                st.markdown(
+                    """
+                    <div style="background-color: rgba(27, 54, 93, 0.5); 
+                                padding: 10px 15px; 
+                                border-radius: 5px; 
+                                margin-bottom: 10px">
+                        <span style="color: #ffffff">🎉 All weekly tasks completed! Great job!</span>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
+            else:
+                # Display only uncompleted tasks
+                for task in uncompleted_weekly_tasks:
+                    # Get urgency info
+                    if hasattr(scheduler, 'task_metadata') and task in scheduler.task_metadata:
+                        metadata = scheduler.task_metadata[task]
+                        frequency = metadata.get("frequency", "unknown")
+                        urgency_score = scheduler.get_task_urgency_score(task)
+
+                        # Create urgency indicator
+                        if urgency_score > 3:
+                            urgency = "🔥 HIGH"
+                        elif urgency_score > 1.5:
+                            urgency = "⚠️ MEDIUM"
+                        else:
+                            urgency = "✓ LOW"
+
+                        label = f"{task} ({frequency} task, urgency: {urgency})"
+                    else:
+                        label = task
+
+                    checked = st.checkbox(label, value=False, key=f"weekly_{task}")
+                    if checked:
+                        scheduler.mark_task_completed(task)
+                        st.success(f"✅ Marked as completed: {task}")
+                        st.rerun()
+
         # 📅 BIWEEKLY TASKS
         if energy_level != "red" and "biweekly_tasks" in recs:
             st.write("#### 📅 Biweekly Tasks")
