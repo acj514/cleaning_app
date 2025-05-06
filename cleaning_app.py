@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import datetime
 from adaptive_cleaning_scheduler_complete import AdaptiveCleaningScheduler
-from streamlit_gsheets import GSheetsConnection
+from st_gsheets_connection import GSheetsConnection
 
 # Configure Google Sheets connection in .streamlit/secrets.toml
 if "gsheets_conn" not in st.session_state:
