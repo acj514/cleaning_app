@@ -5,7 +5,7 @@ import os
 import json
 import streamlit as st
 import pandas as pd
-from streamlit_gsheets import GSheetsConnection
+from st_gsheets_connection import GSheetsConnection
 
 class AdaptiveCleaningScheduler:
     def __init__(self, username="default", history_file=None, daily_tasks_file=None):
