@@ -312,7 +312,7 @@ class AdaptiveCleaningScheduler:
                     "Load dishwasher and run if full",  # daily
                     "Wipe down stovetop",  # daily
                     "Empty and wipe bathroom trash",  # daily
-                    "Clean coffee table"  # daily
+                    "Clean coffee table" # daily
                 ]
             },
             "priority2": {
@@ -327,7 +327,7 @@ class AdaptiveCleaningScheduler:
                     "Wipe down appliances",  # weekly
                     "Quick clean one mirror",  # weekly
                     "Tidy one shelf or counter",  # weekly
-                    "Change pillowcases",  # weekly
+                    "Change sheets and pillowcases",  # weekly
                     "Clean out one fridge shelf"  # weekly
                 ],
                 "15min": [
@@ -335,7 +335,8 @@ class AdaptiveCleaningScheduler:
                     "Change bed sheets",  # weekly
                     "Vacuum rugs",  # weekly
                     "Wipe switches and doorknobs",  # weekly
-                    "Clean bathroom toilet and sink thoroughly"  # weekly
+                    "Clean bathroom toilet and sink thoroughly",  # weekly
+                    "Replace bath towels" # weekly
                 ]
             },
             "priority3": {
@@ -358,7 +359,14 @@ class AdaptiveCleaningScheduler:
                     "Clean out medicine cabinet",  # monthly
                     "Reorganize pantry zone",  # monthly
                     "Clean behind microwave",  # monthly
-                    "Deep clean one small appliance"  # monthly
+                    "Deep clean one appliance",  # monthly
+                    "Clean cycle on coffee maker", # monthly
+                    "Clean cycle on dishwasher", # monthly
+                    "Dust ceiling fans and light fixtures", # monthly
+                    "Clean baseboards and molding", # monthly
+                    "Vacuum upholstered furniture", # monthly
+                    "Clean kitchen sink drain with baking soda and vinegar", # monthly
+                    "Launder shower curtain and liner (don't use dryer!)" # monthly
                 ]
             },
             "priority4": {
@@ -367,14 +375,17 @@ class AdaptiveCleaningScheduler:
                     "Dust and rotate books",  # quarterly
                     "Wipe window tracks",  # quarterly
                     "Clean washing machine filter",  # quarterly
-                    "Check fire alarm batteries"  # quarterly
+                    "Check fire alarm batteries",  # quarterly
+                    "Rotate mattress", # quarterly
+                    "Wash trashcans and recycling bins", # quarterly
+                    "Declutter storage spaces", # quarterly
+                    "Check water filter and water softner", # quarterly
+                    "Wash curtains or blinds"  # quarterly
                 ],
                 "delegate": [
                     "Clean behind large appliances",  # quarterly
                     "Organize storage closet",  # quarterly
-                    "Sort donation bin",  # quarterly
-                    "Clean ceiling fan blades",  # quarterly
-                    "Wash curtains or blinds"  # quarterly
+                    "Sort donation bin"  # quarterly
                 ]
             }
         }
