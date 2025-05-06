@@ -5,3 +5,5 @@ python-dateutil>=2.8.2
 numpy>=1.22.0
 altair>=4.0
 watchdog>=2.0.0
+streamlit>=1.28
+st-gsheets-connection
