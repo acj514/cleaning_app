@@ -4,6 +4,14 @@ import datetime
 import os
 from adaptive_cleaning_scheduler_complete import AdaptiveCleaningScheduler
 
+# At the beginning of your app
+import os
+
+# Try to get credentials from secrets.toml
+if "airtable" in st.secrets:
+    os.environ["AIRTABLE_API_KEY"] = st.secrets["airtable"]["AIRTABLE_API_KEY"]
+    os.environ["AIRTABLE_BASE_ID"] = st.secrets["airtable"]["AIRTABLE_BASE_ID"]
+
 # Set page config
 st.set_page_config(page_title="Adaptive Cleaning Scheduler", layout="wide", initial_sidebar_state="expanded")
 
