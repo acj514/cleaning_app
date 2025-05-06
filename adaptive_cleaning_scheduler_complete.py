@@ -1,22 +1,15 @@
+from airtable_backend import AirtableBackend
 import random
 import datetime
 from typing import List, Dict, Tuple, Union, Any
-import os
-import json
 import streamlit as st
 import pandas as pd
-from st_gsheets_connection import GSheetsConnection
+import os
 
 class AdaptiveCleaningScheduler:
-    def __init__(self, username="default", history_file=None, daily_tasks_file=None):
-        if history_file is None:
-            history_file = f"{username}_cleaning_history.json"
-        if daily_tasks_file is None:
-            daily_tasks_file = f"{username}_daily_tasks.json"
-
-        self.history_file = history_file
-        self.daily_tasks_file = daily_tasks_file
+    def __init__(self, username="default"):
         self.username = username
+        self.backend = AirtableBackend()
 
         today = datetime.date.today()
         self.current_date = today
@@ -26,212 +19,36 @@ class AdaptiveCleaningScheduler:
         self.current_quarter = (today.month - 1) // 3 + 1
 
         self.tasks, self.task_metadata = self._initialize_tasks()
-        self.task_history = self._load_task_history()
+        self.task_history = self.backend.get_task_history(self.username)
         self.daily_task_assignments = self._load_or_generate_daily_tasks()
         self._ensure_today_generated()  # Ensure today's tasks are generated
-
-    def _init_sheets_connection(self):
-        """Initialize connection to Google Sheets"""
-        if "gsheets_conn" not in st.session_state:
-            try:
-                conn = st.connection("gsheets", type=GSheetsConnection)
-                st.session_state.gsheets_conn = conn
-            except Exception as e:
-                st.error(f"Error connecting to Google Sheets: {e}")
-                return None
-        return st.session_state.gsheets_conn
 
     def _ensure_today_generated(self):
         today_str = self.current_date.strftime("%Y-%m-%d")
         if today_str not in self.daily_task_assignments:
             self.daily_task_assignments[today_str] = self._generate_todays_tasks()
-            self._save_daily_tasks_to_sheets()
+            # Save to Airtable
+            self.backend.save_daily_tasks(self.username, today_str, self.daily_task_assignments[today_str])
 
-    def _load_task_history(self) -> Dict:
-        """Load task history from Google Sheets or create new if doesn't exist"""
-        try:
-            # First try to load from Google Sheets
-            conn = self._init_sheets_connection()
-            if conn:
-                try:
-                    # Read the history data for this user
-                    df = conn.read(worksheet="cleaning_history")
-                    if not df.empty:
-                        # Filter for this user's data
-                        user_df = df[df["username"] == self.username]
-                        if not user_df.empty:
-                            # Convert the JSON string to a dictionary
-                            task_history = json.loads(user_df.iloc[0]["history_data"])
-                            return task_history
-                except Exception as e:
-                    st.warning(f"Could not load history from Google Sheets: {e}. Falling back to local file.")
-            
-            # Fall back to local file
-            with open(self.history_file, 'r') as f:
-                return json.load(f)
-        except (FileNotFoundError, json.JSONDecodeError):
-            return {}  # Return empty dict if file doesn't exist or is invalid
-
-    def _save_task_history(self):
-        """Save task history to Google Sheets and local file as backup"""
-        # Save to local file as backup
-        with open(self.history_file, 'w') as f:
-            json.dump(self.task_history, f, indent=2)
-        
-        # Save to Google Sheets
-        conn = self._init_sheets_connection()
-        if conn:
-            try:
-                # Convert task history to JSON string
-                history_json = json.dumps(self.task_history)
-                
-                # Read existing data
-                df = conn.read(worksheet="cleaning_history")
-                
-                # Check if user already exists in the sheet
-                if not df.empty and self.username in df["username"].values:
-                    # Update existing row
-                    mask = df["username"] == self.username
-                    df.loc[mask, "history_data"] = history_json
-                    df.loc[mask, "last_updated"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                else:
-                    # Create new row
-                    new_row = pd.DataFrame({
-                        "username": [self.username],
-                        "history_data": [history_json],
-                        "last_updated": [datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
-                    })
-                    df = pd.concat([df, new_row], ignore_index=True)
-                
-                # Write back to sheet
-                conn.update(worksheet="cleaning_history", data=df)
-            except Exception as e:
-                st.warning(f"Could not save history to Google Sheets: {e}. Saved to local file only.")
-
-    def _load_or_generate_daily_tasks(self) -> Dict:
-        """Load today's task assignments from Google Sheets or generate new ones if needed"""
-        today_str = self.current_date.strftime("%Y-%m-%d")
-
-        try:
-            # First try to load from Google Sheets
-            conn = self._init_sheets_connection()
-            if conn:
-                try:
-                    # Read the daily tasks data
-                    df = conn.read(worksheet="daily_tasks")
-                    if not df.empty:
-                        # Filter for this user's data
-                        user_df = df[(df["username"] == self.username) & (df["date"] == today_str)]
-                        if not user_df.empty:
-                            # Convert the JSON string to a dictionary
-                            tasks_json = user_df.iloc[0]["tasks_data"]
-                            daily_tasks = json.loads(tasks_json)
-                            return daily_tasks
-                except Exception as e:
-                    st.warning(f"Could not load daily tasks from Google Sheets: {e}. Falling back to local file.")
-            
-            # Fall back to local file
-            with open(self.daily_tasks_file, 'r') as f:
-                daily_tasks = json.load(f)
-
-            # Check if we have tasks for today
-            if today_str in daily_tasks:
-                return daily_tasks
-            else:
-                # Generate new tasks for today
-                daily_tasks[today_str] = self._generate_todays_tasks()
-                self._save_daily_tasks_to_sheets(daily_tasks)
-                return daily_tasks
-
-        except (FileNotFoundError, json.JSONDecodeError):
-            # File doesn't exist or is invalid, create new
-            daily_tasks = {today_str: self._generate_todays_tasks()}
-            self._save_daily_tasks_to_sheets(daily_tasks)
-            return daily_tasks
-
-    def _save_daily_tasks_to_sheets(self, daily_tasks=None):
-        """Save daily tasks to Google Sheets and local file as backup"""
-        if daily_tasks is None:
-            daily_tasks = self.daily_task_assignments
-        
-        # Save to local file as backup
-        with open(self.daily_tasks_file, 'w') as f:
-            json.dump(daily_tasks, f, indent=2)
-        
-        # Save to Google Sheets
-        conn = self._init_sheets_connection()
-        if conn:
-            try:
-                today_str = self.current_date.strftime("%Y-%m-%d")
-                tasks_json = json.dumps(daily_tasks[today_str])
-                
-                # Read existing data
-                df = conn.read(worksheet="daily_tasks")
-                
-                # Check if entry already exists
-                if not df.empty and ((df["username"] == self.username) & (df["date"] == today_str)).any():
-                    # Update existing row
-                    mask = (df["username"] == self.username) & (df["date"] == today_str)
-                    df.loc[mask, "tasks_data"] = tasks_json
-                    df.loc[mask, "last_updated"] = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                else:
-                    # Create new row
-                    new_row = pd.DataFrame({
-                        "username": [self.username],
-                        "date": [today_str],
-                        "tasks_data": [tasks_json],
-                        "last_updated": [datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
-                    })
-                    df = pd.concat([df, new_row], ignore_index=True)
-                
-                # Write back to sheet
-                conn.update(worksheet="daily_tasks", data=df)
-            except Exception as e:
-                st.warning(f"Could not save daily tasks to Google Sheets: {e}. Saved to local file only.")
-
+    def mark_task_completed(self, task_name, notes=""):
+        self.backend.update_task_history(self.username, task_name, notes)
+        self.task_history = self.backend.get_task_history(self.username)
+        print(f"✅ Task marked as completed: {task_name}")
+    
     def reset_todays_tasks(self):
         """Reset today's task assignments (useful if you want different tasks)"""
         today_str = self.current_date.strftime("%Y-%m-%d")
 
-        try:
-            # Remove from local file if it exists
-            with open(self.daily_tasks_file, 'r') as f:
-                daily_tasks = json.load(f)
-
-            # Delete today's tasks if they exist
-            if today_str in daily_tasks:
-                del daily_tasks[today_str]
-
-            # Save the updated file
-            with open(self.daily_tasks_file, 'w') as f:
-                json.dump(daily_tasks, f, indent=2)
-
-            # Update Google Sheets
-            conn = self._init_sheets_connection()
-            if conn:
-                try:
-                    # Read existing data
-                    df = conn.read(worksheet="daily_tasks")
-                    
-                    # Remove today's entry for this user if it exists
-                    if not df.empty:
-                        df = df[~((df["username"] == self.username) & (df["date"] == today_str))]
-                        
-                        # Write back to sheet
-                        conn.update(worksheet="daily_tasks", data=df)
-                except Exception as e:
-                    st.warning(f"Could not update Google Sheets: {e}")
-
-            # Regenerate today's tasks
-            self.daily_task_assignments = self._load_or_generate_daily_tasks()
-
-            print("\n✅ Today's task assignments have been reset!")
-
-        except (FileNotFoundError, json.JSONDecodeError):
-            # If file doesn't exist or is invalid, just generate new tasks
-            self.daily_task_assignments = self._load_or_generate_daily_tasks()
-            print("\n✅ Today's task assignments have been generated!")
-
+        # Generate new tasks for today
+        new_tasks = self._generate_todays_tasks()
+        
+        # Update local cache
+        self.daily_task_assignments[today_str] = new_tasks
+        
+        # Save to Airtable
+        self.backend.save_daily_tasks(self.username, today_str, new_tasks)
+        
+        print("\n✅ Today's task assignments have been reset!")
 
     def get_daily_tasks(self, energy_level="red") -> List[str]:
         today_str = self.current_date.strftime("%Y-%m-%d")
@@ -280,7 +97,6 @@ class AdaptiveCleaningScheduler:
             return quarterly_task
         return "🎉 No quarterly focus needed today!"      
     
-
     def _generate_todays_tasks(self) -> Dict:
         """Generate task assignments for today"""
         # Generate daily tasks for all energy levels
@@ -631,10 +447,15 @@ class AdaptiveCleaningScheduler:
             return float('inf')  # Task never done
 
         last_done_str = self.task_history[task_name]["last_done"]
-        last_done = datetime.datetime.strptime(last_done_str, "%Y-%m-%d").date()
-        days_since = (self.current_date - last_done).days
-
-        return days_since
+        if not last_done_str:
+            return float('inf')  # Task never done
+            
+        try:
+            last_done = datetime.datetime.strptime(last_done_str, "%Y-%m-%d").date()
+            days_since = (self.current_date - last_done).days
+            return days_since
+        except ValueError:
+            return float('inf')  # Invalid date format
 
     def is_task_due(self, task_name):
         meta = self.task_metadata.get(task_name)
@@ -665,9 +486,6 @@ class AdaptiveCleaningScheduler:
     
         days_since_done = (datetime.date.today() - last_done).days
         return days_since_done >= threshold
-
-
-
 
     def get_task_urgency_score(self, task_name):
         """Calculate an urgency score based on days since last completion and priority"""
@@ -707,34 +525,6 @@ class AdaptiveCleaningScheduler:
         """Return True if the task was completed within days_threshold"""
         days_since = self.get_days_since_task_completion(task_name)
         return days_since < days_threshold
-
-    def mark_task_completed(self, task_name, notes=""):
-        """Mark a task as completed today with optional notes"""
-        if task_name not in self.task_history:
-            self.task_history[task_name] = {
-                "completion_count": 0,
-                "completion_dates": []
-            }
-
-        # Update the task history
-        self.task_history[task_name]["last_done"] = self.current_date.strftime("%Y-%m-%d")
-        self.task_history[task_name]["completion_count"] = self.task_history[task_name].get("completion_count", 0) + 1
-
-        # Add to completion dates list
-        if "completion_dates" not in self.task_history[task_name]:
-            self.task_history[task_name]["completion_dates"] = []
-
-        completion_entry = {
-            "date": self.current_date.strftime("%Y-%m-%d"),
-            "notes": notes
-        }
-
-        self.task_history[task_name]["completion_dates"].append(completion_entry)
-
-        # Save the updated history
-        self._save_task_history()
-
-        print(f"✅ Task marked as completed: {task_name}")
 
     def get_task_stats(self, task_name):
         """Get statistics for a specific task"""
@@ -1099,12 +889,22 @@ class AdaptiveCleaningScheduler:
         # Calculate streak (consecutive days with at least one task completed)
         dates_with_completions = set()
         for task, data in self.task_history.items():
-            for completion in data.get("completion_dates", []):
-                dates_with_completions.add(completion["date"])
+            # Get completion dates if they exist
+            if "completion_dates" in data:
+                for completion in data.get("completion_dates", []):
+                    if isinstance(completion, dict) and "date" in completion:
+                        dates_with_completions.add(completion["date"])
 
         # Convert to date objects and sort
-        completion_dates = sorted([datetime.datetime.strptime(d, "%Y-%m-%d").date()
-                                   for d in dates_with_completions], reverse=True)
+        completion_dates = []
+        for date_str in dates_with_completions:
+            try:
+                date_obj = datetime.datetime.strptime(date_str, "%Y-%m-%d").date()
+                completion_dates.append(date_obj)
+            except ValueError:
+                continue
+                
+        completion_dates.sort(reverse=True)
 
         # Calculate current streak
         current_streak = 0
@@ -1161,4 +961,24 @@ class AdaptiveCleaningScheduler:
         print("\n========================================")
         input("\nPress Enter to continue...")
 
+    def _load_task_history(self):
+        """Load task history from Airtable"""
+        return self.backend.get_task_history(self.username)
 
+    def _load_or_generate_daily_tasks(self):
+        """Load daily tasks from Airtable or generate if not found"""
+        today_str = self.current_date.strftime("%Y-%m-%d")
+        
+        # Try to load from Airtable
+        daily_tasks = self.backend.get_daily_tasks(self.username, today_str)
+        
+        if daily_tasks:
+            return {today_str: daily_tasks}
+        else:
+            # Generate new tasks if not found
+            new_tasks = self._generate_todays_tasks()
+            
+            # Save to Airtable
+            self.backend.save_daily_tasks(self.username, today_str, new_tasks)
+            
+            return {today_str: new_tasks}
