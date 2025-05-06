@@ -28,9 +28,6 @@ class AirtableBackend:
         if not self.api_key or not self.base_id:
             print("⚠️ Warning: Airtable credentials not found in environment variables.")
             print("Please set AIRTABLE_API_KEY and AIRTABLE_BASE_ID environment variables.")
-        else:
-            # Check if tables exist and create them if they don't
-            self._ensure_tables_exist()
     
     def get_task_history(self, username: str) -> Dict[str, Any]:
         """
@@ -44,24 +41,6 @@ class AirtableBackend:
         task_history = {}
         
         try:
-            # Check if the table exists first
-            try:
-                response = requests.get(
-                    f"{self.api_url}/{self.task_history_table}",
-                    headers=self.headers,
-                    params={'maxRecords': 1}  # Just check if table exists
-                )
-                
-                # If 404, table doesn't exist
-                if response.status_code == 404:
-                    print(f"Task history table not found. Creating table...")
-                    self._create_task_history_table()
-                    # Return empty results for now
-                    return {}
-                    
-            except Exception as e:
-                print(f"Error checking if task history table exists: {e}")
-            
             # Query Airtable for records matching this username
             params = {
                 'filterByFormula': f"{{username}}='{username}'"
@@ -74,15 +53,8 @@ class AirtableBackend:
             )
             
             if response.status_code != 200:
-                if response.status_code == 404:
-                    # Table doesn't exist, create it
-                    print(f"Task history table not found. Creating table...")
-                    self._create_task_history_table()
-                    return {}
-                else:
-                    print(f"Error fetching task history: {response.status_code}")
-                    print(response.text)
-                    return {}
+                print(f"Error fetching task history: {response.status_code} - {response.text}")
+                return {}
             
             # Process the response
             records = response.json().get('records', [])
@@ -167,23 +139,19 @@ class AirtableBackend:
                 print(f"Error updating task history: {e}")
                 return False
         else:
-            # Create new record - debug the data we're sending
-            completion_dates = [{
-                "date": today,
-                "notes": notes
-            }]
-            
+            # Create new record
             data = {
                 "fields": {
                     "username": username,
                     "task_name": task_name,
                     "completion_count": 1,
                     "last_done": today,
-                    "completion_dates": json.dumps(completion_dates)
+                    "completion_dates": json.dumps([{
+                        "date": today,
+                        "notes": notes
+                    }])
                 }
             }
-            
-            print(f"Creating new task history with data: {json.dumps(data, indent=2)}")
             
             try:
                 # Create new record in Airtable
@@ -196,25 +164,9 @@ class AirtableBackend:
                 if response.status_code not in [200, 201]:
                     print(f"Error creating task history: {response.status_code}")
                     print(f"Response: {response.text}")
-                    
-                    # Try an alternative format for the Date field
-                    data["fields"]["last_done"] = {
-                        "date": today  # Format as object with date property
-                    }
-                    
-                    print(f"Trying alternative date format: {json.dumps(data, indent=2)}")
-                    
-                    alt_response = requests.post(
-                        f"{self.api_url}/{self.task_history_table}",
-                        headers=self.headers,
-                        data=json.dumps(data)
-                    )
-                    
-                    if alt_response.status_code not in [200, 201]:
-                        print(f"Alternative format also failed: {alt_response.status_code}")
-                        print(f"Response: {alt_response.text}")
-                        return False
-                    
+                    print(f"Request data: {json.dumps(data, indent=2)}")
+                    return False
+                
                 return True
                 
             except Exception as e:
@@ -225,23 +177,6 @@ class AirtableBackend:
         """
         Save daily task assignments to Airtable
         """
-        # Check if the table exists first
-        try:
-            response = requests.get(
-                f"{self.api_url}/{self.daily_tasks_table}",
-                headers=self.headers,
-                params={'maxRecords': 1}  # Just check if table exists
-            )
-            
-            # If 404, table doesn't exist
-            if response.status_code == 404:
-                print(f"Daily tasks table not found. Creating table...")
-                self._create_daily_tasks_table()
-                # Wait a moment for table creation to complete
-                time.sleep(1)
-        except Exception as e:
-            print(f"Error checking if daily tasks table exists: {e}")
-        
         # First check if we already have a record for this date and user
         params = {
             'filterByFormula': f"AND({{username}}='{username}', {{date}}='{date_str}')"
@@ -255,19 +190,8 @@ class AirtableBackend:
             )
             
             if response.status_code != 200:
-                if response.status_code == 404:
-                    # Table doesn't exist, create it
-                    print(f"Daily tasks table not found. Creating table...")
-                    self._create_daily_tasks_table()
-                    # Wait a moment for table creation to complete
-                    time.sleep(1)
-                    
-                    # After creating table, proceed with creating new record
-                    return self._create_new_daily_tasks_record(username, date_str, task_assignments)
-                else:
-                    print(f"Error checking for existing daily tasks: {response.status_code}")
-                    print(response.text)
-                    return False
+                print(f"Error checking for existing daily tasks: {response.status_code} - {response.text}")
+                return False
                 
             records = response.json().get('records', [])
             
@@ -298,65 +222,35 @@ class AirtableBackend:
                 return True
             else:
                 # Create new record
-                return self._create_new_daily_tasks_record(username, date_str, task_assignments)
+                data = {
+                    "fields": {
+                        "username": username,
+                        "date": date_str,
+                        "task_assignments": task_assignments_json
+                    }
+                }
+                
+                create_response = requests.post(
+                    f"{self.api_url}/{self.daily_tasks_table}",
+                    headers=self.headers,
+                    data=json.dumps(data)
+                )
+                
+                if create_response.status_code not in [200, 201]:
+                    print(f"Error creating daily tasks: {create_response.status_code}")
+                    print(create_response.text)
+                    return False
+                    
+                return True
                 
         except Exception as e:
             print(f"Error saving daily tasks: {e}")
-            return False
-            
-    def _create_new_daily_tasks_record(self, username: str, date_str: str, task_assignments: Dict) -> bool:
-        """Helper method to create a new daily tasks record"""
-        # Convert task assignments to JSON string for storage
-        task_assignments_json = json.dumps(task_assignments)
-        
-        data = {
-            "fields": {
-                "username": username,
-                "date": date_str,
-                "task_assignments": task_assignments_json
-            }
-        }
-        
-        try:
-            create_response = requests.post(
-                f"{self.api_url}/{self.daily_tasks_table}",
-                headers=self.headers,
-                data=json.dumps(data)
-            )
-            
-            if create_response.status_code not in [200, 201]:
-                print(f"Error creating daily tasks: {create_response.status_code}")
-                print(create_response.text)
-                return False
-                
-            return True
-        except Exception as e:
-            print(f"Error creating daily tasks record: {e}")
             return False
     
     def get_daily_tasks(self, username: str, date_str: str) -> Dict:
         """
         Retrieve daily task assignments from Airtable
         """
-        # Check if the table exists first
-        try:
-            response = requests.get(
-                f"{self.api_url}/{self.daily_tasks_table}",
-                headers=self.headers,
-                params={'maxRecords': 1}  # Just check if table exists
-            )
-            
-            # If 404, table doesn't exist
-            if response.status_code == 404:
-                print(f"Daily tasks table not found. Creating table...")
-                self._create_daily_tasks_table()
-                # Return empty results for now
-                return {}
-                
-        except Exception as e:
-            print(f"Error checking if daily tasks table exists: {e}")
-        
-        # Now try to get the data
         params = {
             'filterByFormula': f"AND({{username}}='{username}', {{date}}='{date_str}')"
         }
@@ -369,15 +263,8 @@ class AirtableBackend:
             )
             
             if response.status_code != 200:
-                if response.status_code == 404:
-                    # Table doesn't exist, create it
-                    print(f"Daily tasks table not found. Creating table...")
-                    self._create_daily_tasks_table()
-                    return {}
-                else:
-                    print(f"Error fetching daily tasks: {response.status_code}")
-                    print(response.text)
-                    return {}
+                print(f"Error fetching daily tasks: {response.status_code} - {response.text}")
+                return {}
                 
             records = response.json().get('records', [])
             
@@ -412,8 +299,7 @@ class AirtableBackend:
             )
             
             if response.status_code != 200:
-                print(f"Error fetching all daily tasks: {response.status_code}")
-                print(response.text)
+                print(f"Error fetching all daily tasks: {response.status_code} - {response.text}")
                 return {}
                 
             records = response.json().get('records', [])
