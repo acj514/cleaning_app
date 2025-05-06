@@ -1,26 +1,31 @@
 import streamlit as st
 import pandas as pd
 import datetime
+import os
 from adaptive_cleaning_scheduler_complete import AdaptiveCleaningScheduler
-from st_gsheets_connection import GSheetsConnection
 
-# Configure Google Sheets connection in .streamlit/secrets.toml
-if "gsheets_conn" not in st.session_state:
-    try:
-        st.session_state.gsheets_conn = st.connection("gsheets", type=GSheetsConnection)
-    except Exception as e:
-        st.error(f"Error connecting to Google Sheets: {str(e)}")
-        st.error("Please set up your Google Sheets connection in .streamlit/secrets.toml")
+# Set page config
+st.set_page_config(page_title="Adaptive Cleaning Scheduler", layout="wide", initial_sidebar_state="expanded")
+
+# Check if Airtable credentials are set
+if not os.environ.get('AIRTABLE_API_KEY') or not os.environ.get('AIRTABLE_BASE_ID'):
+    st.error("⚠️ Airtable credentials not found in environment variables.")
+    st.info("Please set AIRTABLE_API_KEY and AIRTABLE_BASE_ID as environment variables.")
+    
+    # Offer a form to set credentials temporarily
+    with st.expander("Set Airtable Credentials (for this session only)"):
+        api_key = st.text_input("Airtable API Key:", type="password")
+        base_id = st.text_input("Airtable Base ID:")
+        
+        if st.button("Save Credentials"):
+            os.environ['AIRTABLE_API_KEY'] = api_key
+            os.environ['AIRTABLE_BASE_ID'] = base_id
+            st.success("Credentials saved for this session. Refresh the page to continue.")
+            st.experimental_rerun()
+    
+    # Stop execution if credentials aren't set
+    if not os.environ.get('AIRTABLE_API_KEY') or not os.environ.get('AIRTABLE_BASE_ID'):
         st.stop()
-
-# Initialize the scheduler
-scheduler = AdaptiveCleaningScheduler()
-
-st.set_page_config(page_title="Adaptive Cleaning Scheduler", layout="wide", initial_sidebar_state="expanded")
-
-st.title("🧹 Adaptive Cleaning Scheduler")
-
-st.set_page_config(page_title="Adaptive Cleaning Scheduler", layout="wide", initial_sidebar_state="expanded")
 
 st.title("🧹 Adaptive Cleaning Scheduler")
 
@@ -669,12 +674,21 @@ if username:
                 # Calculate current streak
                 dates_with_completions = set()
                 for task, data in scheduler.task_history.items():
-                    for completion in data.get("completion_dates", []):
-                        dates_with_completions.add(completion["date"])
+                    # Handle completion_dates format from Airtable
+                    if "completion_dates" in data:
+                        for completion in data.get("completion_dates", []):
+                            if isinstance(completion, dict) and "date" in completion:
+                                dates_with_completions.add(completion["date"])
 
                 # Convert to date objects and sort
-                completion_dates = sorted([datetime.datetime.strptime(d, "%Y-%m-%d").date()
-                                           for d in dates_with_completions], reverse=True)
+                completion_dates = []
+                for date_str in dates_with_completions:
+                    try:
+                        completion_dates.append(datetime.datetime.strptime(date_str, "%Y-%m-%d").date())
+                    except (ValueError, TypeError):
+                        pass
+                
+                completion_dates.sort(reverse=True)
 
                 # Calculate current streak
                 streak = 0
@@ -716,7 +730,7 @@ if username:
                 overdue_tasks.sort(key=lambda x: x["urgency_score"], reverse=True)
 
                 overdue_data = []
-                for task in overdue_tasks[:]:  # Show top 15 most urgent
+                for task in overdue_tasks[:15]:  # Show top 15 most urgent
                     # Create urgency indicator
                     if task["urgency_score"] > 3:
                         urgency = "🔥 HIGH"
@@ -763,6 +777,21 @@ if username:
             scheduler.reset_todays_tasks()
             st.success("Today's tasks have been reset!")
             st.write("Return to 'Today's Recommendations' to see your new personalized tasks.")
+
+    # Add an Airtable section to the sidebar for settings
+    with st.sidebar.expander("Airtable Settings"):
+        st.write("Current Airtable Connection:")
+        st.write("- API Key: " + ("✅ Set" if os.environ.get('AIRTABLE_API_KEY') else "❌ Not Set"))
+        st.write("- Base ID: " + ("✅ Set" if os.environ.get('AIRTABLE_BASE_ID') else "❌ Not Set"))
+        
+        if st.button("Test Connection"):
+            try:
+                # Try to fetch data to test connection
+                test_history = scheduler.backend.get_task_history(username)
+                st.success("Connection successful! Able to access Airtable.")
+            except Exception as e:
+                st.error(f"Connection failed: {str(e)}")
+                st.info("Please check your API Key and Base ID.")
 
 else:
     st.info("Please enter your name above to get started with your personalized cleaning schedule.")
