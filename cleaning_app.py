@@ -2,9 +2,23 @@ import streamlit as st
 import pandas as pd
 import datetime
 from adaptive_cleaning_scheduler_complete import AdaptiveCleaningScheduler
+from streamlit_gsheets import GSheetsConnection
+
+# Configure Google Sheets connection in .streamlit/secrets.toml
+if "gsheets_conn" not in st.session_state:
+    try:
+        st.session_state.gsheets_conn = st.connection("gsheets", type=GSheetsConnection)
+    except Exception as e:
+        st.error(f"Error connecting to Google Sheets: {str(e)}")
+        st.error("Please set up your Google Sheets connection in .streamlit/secrets.toml")
+        st.stop()
 
 # Initialize the scheduler
 scheduler = AdaptiveCleaningScheduler()
+
+st.set_page_config(page_title="Adaptive Cleaning Scheduler", layout="wide", initial_sidebar_state="expanded")
+
+st.title("🧹 Adaptive Cleaning Scheduler")
 
 st.set_page_config(page_title="Adaptive Cleaning Scheduler", layout="wide", initial_sidebar_state="expanded")
 
