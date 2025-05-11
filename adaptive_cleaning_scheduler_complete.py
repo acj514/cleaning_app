@@ -333,7 +333,7 @@ class AdaptiveCleaningScheduler:
             "priority2": {
                 "2min": [
                     "Replace kitchen towel",  # weekly
-                    "Tidy couch cushions and blanket",  # weekly
+                    "Tidy couch cushions and blankets",  # weekly
                     "Water houseplants",  # weekly
                     "Wipe down door handles",  # weekly
                     "Refill toilet paper or soap"  # weekly
@@ -342,13 +342,10 @@ class AdaptiveCleaningScheduler:
                     "Wipe down appliances",  # weekly
                     "Quick clean one mirror",  # weekly
                     "Tidy one shelf or counter",  # weekly
-                    "Change sheets and pillowcases",  # weekly
                     "Clean out one fridge shelf"  # weekly
                 ],
                 "15min": [
                     "Mop kitchen and bathroom floors",  # weekly
-                    "Change bed sheets",  # weekly
-                    "Vacuum rugs",  # weekly
                     "Wipe switches and doorknobs",  # weekly
                     "Clean bathroom toilet and sink thoroughly",  # weekly
                     "Replace bath towels" # weekly
