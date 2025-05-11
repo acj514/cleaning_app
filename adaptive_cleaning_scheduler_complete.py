@@ -489,11 +489,11 @@ class AdaptiveCleaningScheduler:
         
         frequency = meta.get("frequency", "unknown")
         threshold = {
-            "daily": 3,
-            "weekly": 10,
-            "biweekly": 18,
-            "monthly": 35,
-            "quarterly": 100
+            "daily": 2,
+            "weekly": 5,
+            "biweekly": 12,
+            "monthly": 26,
+            "quarterly": 80
         }.get(frequency, 7)
     
         last_done_data = self.task_history.get(task_name)
@@ -522,11 +522,11 @@ class AdaptiveCleaningScheduler:
     
         frequency = metadata.get("frequency", "unknown")
         threshold = {
-            "daily": 3,
-            "weekly": 10,
-            "biweekly": 18,
-            "monthly": 35,
-            "quarterly": 100
+            "daily": 2,
+            "weekly": 5,
+            "biweekly": 12,
+            "monthly": 26,
+            "quarterly": 80
         }.get(frequency, 7)
     
         last_done_data = self.task_history.get(task_name)
