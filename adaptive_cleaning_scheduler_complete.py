@@ -144,15 +144,16 @@ class AdaptiveCleaningScheduler:
         # Get quarterly focus
         quarterly_task = self.get_quarterly_task()
     
-        # Variety tasks pulled from all priorities for green energy days
         variety_tasks = []
         all_variety_sources = []
         for priority in ["priority2", "priority3"]:
             for time_category in ["2min", "5min", "15min"]:
                 all_variety_sources.extend(self.tasks[priority][time_category])
-    
+        
         # Filter variety tasks based on frequency and urgency
-        variety_tasks = [t for t in all_variety_sources if self.is_task_due(t)]
+        # Also exclude tasks that are already in biweekly_tasks
+        variety_tasks = [t for t in all_variety_sources 
+                         if self.is_task_due(t) and t not in biweekly_tasks]
         variety_tasks.sort(key=lambda t: self.get_task_urgency_score(t), reverse=True)
         variety_tasks = variety_tasks[:10]
     
