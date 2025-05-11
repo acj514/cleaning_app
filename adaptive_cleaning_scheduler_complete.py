@@ -286,13 +286,15 @@ class AdaptiveCleaningScheduler:
 
     def _initialize_tasks(self) -> Tuple[Dict, Dict]:
         """Initialize all cleaning tasks with priority, time, and frequency"""
-        # Create frequency thresholds for determining when tasks are due
+        # Create frequency thresholds for determining when tasks are due. A few days
+        # less than how often they should be done to encourage frequent cleanings 
+        
         frequency_thresholds = {
-            "daily": 3,  # Due if not done in 2 days
-            "weekly": 10,  # Due if not done in 7 days
-            "biweekly": 18,  # Due if not done in 14 days
-            "monthly": 35,  # Due if not done in 30 days
-            "quarterly": 100  # Due if not done in 90 days
+            "daily": 2,  # Due if not done in 2 days
+            "weekly": 5,  # Due if not done in 5 days
+            "biweekly": 12,  # Due if not done in 12 days
+            "monthly": 26,  # Due if not done in 26 days
+            "quarterly": 80  # Due if not done in 80 days
         }
 
         # Priority multipliers for urgency calculation
