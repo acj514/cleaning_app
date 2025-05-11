@@ -103,45 +103,59 @@ class AdaptiveCleaningScheduler:
         daily_tasks_red = self._generate_daily_tasks("red")
         daily_tasks_yellow = self._generate_daily_tasks("yellow")
         daily_tasks_green = self._generate_daily_tasks("green")
-
+    
         # Generate weekly focus tasks for all energy levels
         weekly_tasks_red = self._generate_weekly_focus_tasks("red")
         weekly_tasks_yellow = self._generate_weekly_focus_tasks("yellow")
         weekly_tasks_green = self._generate_weekly_focus_tasks("green")
-
+    
         # Generate biweekly tasks (sort by days since completion)
         if self.week_of_year % 2 == 0:
             biweekly_tasks = self.biweekly_tasks["weeks1_2"]
         else:
             biweekly_tasks = self.biweekly_tasks["weeks3_4"]
-
+    
         # Filter biweekly tasks based on their frequency
         biweekly_tasks = [t for t in biweekly_tasks if self.is_task_due(t)]
-
+        
+        # Look for additional biweekly tasks from all priorities
+        additional_biweekly_tasks = []
+        for task_name, metadata in self.task_metadata.items():
+            # Skip tasks already in biweekly_tasks
+            if task_name in biweekly_tasks:
+                continue
+                
+            # If task has biweekly frequency and is due
+            if metadata.get("frequency") == "biweekly" and self.is_task_due(task_name):
+                additional_biweekly_tasks.append(task_name)
+        
+        # Add additional biweekly tasks to the main list
+        biweekly_tasks.extend(additional_biweekly_tasks)
+    
         if not biweekly_tasks:
             biweekly_tasks = ["🎉 No biweekly tasks needed today!"]
-
+    
         # Sort remaining by urgency score
         biweekly_tasks.sort(key=lambda t: self.get_task_urgency_score(t), reverse=True)
-
+    
         # Generate monthly tasks
         monthly_tasks = self.get_monthly_task()
-
+    
         # Get quarterly focus
         quarterly_task = self.get_quarterly_task()
-
+    
         # Variety tasks pulled from all priorities for green energy days
         variety_tasks = []
         all_variety_sources = []
         for priority in ["priority2", "priority3"]:
             for time_category in ["2min", "5min", "15min"]:
                 all_variety_sources.extend(self.tasks[priority][time_category])
-
+    
         # Filter variety tasks based on frequency and urgency
         variety_tasks = [t for t in all_variety_sources if self.is_task_due(t)]
         variety_tasks.sort(key=lambda t: self.get_task_urgency_score(t), reverse=True)
         variety_tasks = variety_tasks[:10]
-
+    
         # Create the task assignments dictionary
         task_assignments = {
             "date": self.current_date.strftime("%Y-%m-%d"),
@@ -161,9 +175,9 @@ class AdaptiveCleaningScheduler:
             "quarterly_task": quarterly_task,
             "variety_tasks": variety_tasks,
         }
-
+    
         return task_assignments
-
+        
     def _generate_daily_tasks(self, energy_level="red") -> List[str]:
         """Generate daily tasks based on energy level and task urgency"""
         day_assignment = {
