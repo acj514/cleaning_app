@@ -4,6 +4,7 @@ from typing import Dict, List, Optional, Any
 import requests
 import json
 import time
+from datetime import datetime, timezone, timedelta
 
 class AirtableBackend:
     def __init__(self):
@@ -92,8 +93,13 @@ class AirtableBackend:
         """
         Update task history when a task is completed
         """
-        today = datetime.date.today().strftime("%Y-%m-%d")
+        # Calculate Central Time date
+        # CST is UTC-6, CDT is UTC-5 (we'll use UTC-6 for simplicity)
+        utc_now = datetime.utcnow()
+        central_time = utc_now - timedelta(hours=6)  # Adjust for Central Time
+        today = central_time.strftime("%Y-%m-%d")
         
+        # Rest of the method continues as before...
         # First, check if we already have this task in history
         task_history = self.get_task_history(username)
         
@@ -172,7 +178,7 @@ class AirtableBackend:
             except Exception as e:
                 print(f"Error creating task history: {e}")
                 return False
-    
+        
     def save_daily_tasks(self, username: str, date_str: str, task_assignments: Dict) -> bool:
         """
         Save daily task assignments to Airtable
