@@ -6,6 +6,7 @@ from adaptive_cleaning_scheduler_complete import AdaptiveCleaningScheduler
 
 # At the beginning of your app
 import os
+os.environ['TZ'] = 'America/Chicago'  # Sets timezone to Central Time
 
 # Try to get credentials from secrets.toml
 if "airtable" in st.secrets:
