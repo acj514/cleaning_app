@@ -531,19 +531,26 @@ class AdaptiveCleaningScheduler:
     
         last_done_data = self.task_history.get(task_name)
         if last_done_data is None:
-            return threshold  # assume max urgency if never done
+            return 1.5  # assume max urgency if never done
         
         last_done_str = last_done_data.get("last_done")
         if not last_done_str:
-            return threshold  # assume max urgency if never done
+            return 1.5  # assume max urgency if never done
     
         try:
             last_done = datetime.datetime.strptime(last_done_str, "%Y-%m-%d").date()
         except ValueError:
-            return threshold  # assume max urgency if invalid date
+            return 1.5  # assume max urgency if invalid date
     
         days_since_done = (datetime.date.today() - last_done).days
-        return days_since_done / threshold
+    
+        # Calculate new score: 0 to 1.5+ scale
+        # 0.0 = Just completed, 1.0 = At threshold, 1.5+ = High urgency
+        score = days_since_done / threshold
+        
+        # Cap the maximum score at something reasonable for display purposes
+        # (though logic will still work with higher scores)
+        return min(score, 3.0)
 
 
     def was_task_done_recently(self, task_name, days_threshold):
@@ -650,9 +657,9 @@ class AdaptiveCleaningScheduler:
                 urgency_score = self.get_task_urgency_score(task)
 
                 # Create urgency indicator
-                if urgency_score > 3:
+                if urgency_score >= 1.5:
                     urgency = "🔥 HIGH"
-                elif urgency_score > 1.5:
+                elif urgency_score >= 1.0:
                     urgency = "⚠️ MEDIUM"
                 else:
                     urgency = "✓ LOW"
@@ -680,9 +687,9 @@ class AdaptiveCleaningScheduler:
                     urgency_score = self.get_task_urgency_score(task)
 
                     # Create urgency indicator
-                    if urgency_score > 3:
+                    if urgency_score >= 1.5:
                         urgency = "🔥 HIGH"
-                    elif urgency_score > 1.5:
+                    elif urgency_score >= 1.0:
                         urgency = "⚠️ MEDIUM"
                     else:
                         urgency = "✓ LOW"
@@ -715,9 +722,9 @@ class AdaptiveCleaningScheduler:
                     urgency_score = self.get_task_urgency_score(task)
 
                     # Create urgency indicator
-                    if urgency_score > 3:
+                    if urgency_score >= 1.5:
                         urgency = "🔥 HIGH"
-                    elif urgency_score > 1.5:
+                    elif urgency_score >= 1.0:
                         urgency = "⚠️ MEDIUM"
                     else:
                         urgency = "✓ LOW"
@@ -755,9 +762,9 @@ class AdaptiveCleaningScheduler:
                     urgency_score = self.get_task_urgency_score(task)
 
                     # Create urgency indicator
-                    if urgency_score > 3:
+                    if urgency_score >= 1.5:
                         urgency = "🔥 HIGH"
-                    elif urgency_score > 1.5:
+                    elif urgency_score >= 1.0:
                         urgency = "⚠️ MEDIUM"
                     else:
                         urgency = "✓ LOW"
@@ -789,9 +796,9 @@ class AdaptiveCleaningScheduler:
                     urgency_score = self.get_task_urgency_score(quarterly_task)
 
                     # Create urgency indicator
-                    if urgency_score > 3:
+                    if urgency_score >= 1.5:
                         urgency = "🔥 HIGH"
-                    elif urgency_score > 1.5:
+                    elif urgency_score >= 1.0:
                         urgency = "⚠️ MEDIUM"
                     else:
                         urgency = "✓ LOW"
@@ -821,9 +828,9 @@ class AdaptiveCleaningScheduler:
                     urgency_score = self.get_task_urgency_score(task)
 
                     # Create urgency indicator
-                    if urgency_score > 3:
+                    if urgency_score >= 1.5:
                         urgency = "🔥 HIGH"
-                    elif urgency_score > 1.5:
+                    elif urgency_score >= 1.0:
                         urgency = "⚠️ MEDIUM"
                     else:
                         urgency = "✓ LOW"
