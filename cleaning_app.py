@@ -110,9 +110,9 @@ if username:
                     urgency_score = scheduler.get_task_urgency_score(task)
 
                     # Create urgency indicator
-                    if urgency_score > 3:
+                    if urgency_score > 1.5:
                         urgency = "🔥 HIGH"
-                    elif urgency_score > 1.5:
+                    elif urgency_score > 1:
                         urgency = "⚠️ MEDIUM"
                     else:
                         urgency = "✓ LOW"
@@ -165,13 +165,13 @@ if username:
                         urgency_score = scheduler.get_task_urgency_score(task)
 
                         # Create urgency indicator
-                        if urgency_score > 3:
+                        if urgency_score > 1.5:
                             urgency = "🔥 HIGH"
-                        elif urgency_score > 1.5:
+                        elif urgency_score > 1:
                             urgency = "⚠️ MEDIUM"
                         else:
                             urgency = "✓ LOW"
-
+                            
                         label = f"{task} ({frequency} task, urgency: {urgency})"
                     else:
                         label = task
@@ -246,9 +246,9 @@ if username:
                             urgency_score = scheduler.get_task_urgency_score(task)
 
                             # Create urgency indicator
-                            if urgency_score > 3:
+                            if urgency_score > 1.5:
                                 urgency = "🔥 HIGH"
-                            elif urgency_score > 1.5:
+                            elif urgency_score > 1:
                                 urgency = "⚠️ MEDIUM"
                             else:
                                 urgency = "✓ LOW"
@@ -322,9 +322,9 @@ if username:
                             urgency_score = scheduler.get_task_urgency_score(task)
 
                             # Create urgency indicator
-                            if urgency_score > 3:
+                            if urgency_score > 1.5:
                                 urgency = "🔥 HIGH"
-                            elif urgency_score > 1.5:
+                            elif urgency_score > 1:
                                 urgency = "⚠️ MEDIUM"
                             else:
                                 urgency = "✓ LOW"
@@ -368,9 +368,9 @@ if username:
                         frequency = metadata.get("frequency", "unknown")
                         urgency_score = scheduler.get_task_urgency_score(task)
         
-                        if urgency_score > 3:
+                        if urgency_score > 1.5:
                             urgency = "🔥 HIGH"
-                        elif urgency_score > 1.5:
+                        elif urgency_score > 1:
                             urgency = "⚠️ MEDIUM"
                         else:
                             urgency = "✓ LOW"
@@ -401,9 +401,9 @@ if username:
                         frequency = metadata.get("frequency", "unknown")
                         urgency_score = scheduler.get_task_urgency_score(task)
             
-                        if urgency_score > 3:
+                        if urgency_score > 1.5:
                             urgency = "🔥 HIGH"
-                        elif urgency_score > 1.5:
+                        elif urgency_score > 1:
                             urgency = "⚠️ MEDIUM"
                         else:
                             urgency = "✓ LOW"
@@ -458,9 +458,9 @@ if username:
                     urgency_score = scheduler.get_task_urgency_score(task)
 
                     # Create urgency indicator
-                    if urgency_score > 3:
+                    if urgency_score > 1.5:
                         urgency = "🔥 HIGH"
-                    elif urgency_score > 1.5:
+                    elif urgency_score > 1:
                         urgency = "⚠️ MEDIUM"
                     else:
                         urgency = "✓ LOW"
@@ -741,9 +741,9 @@ if username:
                 overdue_data = []
                 for task in overdue_tasks[:15]:  # Show top 15 most urgent
                     # Create urgency indicator
-                    if task["urgency_score"] > 3:
+                    if urgency_score > 1.5:
                         urgency = "🔥 HIGH"
-                    elif task["urgency_score"] > 1.5:
+                    elif urgency_score > 1:
                         urgency = "⚠️ MEDIUM"
                     else:
                         urgency = "✓ LOW"
